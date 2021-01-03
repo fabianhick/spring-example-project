@@ -1,0 +1,23 @@
+version: 2.1
+orbs:
+  docker: circleci/docker@1.5.0
+
+jobs:
+  deploy:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: Build docker image and push to Heroku
+          command: |
+            sudo curl https://cli-assets.heroku.com/install.sh | sh
+            docker build . --tag web
+            heroku container:login
+            heroku container:push -a ${HEROKU_APP_NAME} web
+            heroku container:release -a ${HEROKU_APP_NAME} web
+workflows:
+  build-and-publish-docker-image:
+    jobs:
+      - docker/publish:
+          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+      - deploy
